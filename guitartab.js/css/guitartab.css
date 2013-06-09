@@ -3,11 +3,20 @@ body {
 }
 
 #drawing-canvas {
+}
+
+#content {
     margin: 0 auto;
     padding: 1em 1em;
     background-color: whitesmoke;
     width: 60em;
     height: 800px;
+}
+
+#play-button {
+    padding-top: 1em;
+    text-align: center;
+    clear: both;
 }
 
 .tab-measure {
@@ -27,7 +36,6 @@ body {
     position: absolute;
     left: 0%;
     transition-property: left;
-    transition-duration: 2.4s;
     transition-timing-function: linear;
 }
 

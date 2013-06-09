@@ -1,6 +1,6 @@
 if (typeof (GuitarTab) === "undefined") var GuitarTab = {};
 
-require(['Renderer'], function(renderer){
+require(['Renderer', 'PlaybackController'], function(renderer, playbackController){
     if (GuitarTab.tab){
         document.getElementById('tab-title').appendChild(document.createTextNode(GuitarTab.tab.title));
         document.getElementById('tab-artist').appendChild(document.createTextNode(GuitarTab.tab.artist));
@@ -15,5 +15,9 @@ require(['Renderer'], function(renderer){
                 drawingCanvas.appendChild(renderer.convertJsonMeasureToHtml(part.measures[measureIndex], part.numberOfStrings, measureIndex));
             }
         }
+
+        playbackController.calculateMeasureEvents();
+
+        document.getElementById('play-button').onclick = playbackController.play;
     }
 });
