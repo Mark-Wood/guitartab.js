@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>guitartab.js</title>
+    <link type="text/css" rel="stylesheet" href="css/guitartab.css">
+</head>
+<body>
+    <div id="drawing-canvas">
+        <h1 id="tab-title"></h1>
+        <h2 id="tab-artist"></h2>
+    </div>
+    <script type="text/javascript">
+        if (typeof (GuitarTab) === "undefined") var GuitarTab = {};
+
+        GuitarTab.tab = {
+            metaData: {
+                author: "Mark Wood"
+            },
+            artist: "Neil Young",
+            title: "Tell Me Why",
+            lengthInMeasures: 5,
+            measureTimeSignatures: {},
+            beatsPerMinute: 80,
+            parts: [
+                {
+                    instrument: "Guitar",
+                    numberOfStrings: 6,
+                    tuning: "Standard",
+                    volume: 1,
+                    measures: {
+                        0: {
+                            noteColumns: [
+                                {duration: 8, notes: {}},
+                                {duration: 8, notes: {}},
+                                {duration: 8, notes: {}},
+                                {duration: 8, notes: {}},
+                                {duration: 8, notes: {}},
+                                {duration: 8, notes: {5: 3}},
+                                {duration: 8, notes: {4: 0}},
+                                {duration: 8, notes: {4: 2}}
+                            ]
+                        },
+                        1: {
+                            noteColumns: [
+                                {duration: 8, notes: {4: 3}},
+                                {duration: 8, notes: {0: 0, 1: 1, 2: 0, 3: 2}},
+                                {duration: 4, notes: {3: 0}},
+                                {duration: 4, notes: {3: 2}},
+                                {duration: 8, notes: {0: 0, 1: 1, 2: 0, 3: 2}},
+                                {duration: 8, notes: {2: 2}},
+                                {duration: 8, notes: {1: 0}},
+                                {duration: 8, notes: {2: 0}},
+                                {duration: 8, notes: {3: 2}}
+                            ]
+                        },
+                        2: {
+                            noteColumns: [
+                                {duration: 8, notes: {3: 0}},
+                                {duration: 4, notes: {0: 2, 1: 3, 2: 2}},
+                                {duration: 4, notes: {0: 2, 1: 3, 2: 2}},
+                                {duration: 8, notes: {4: 0}},
+                                {duration: 4, notes: {0: 2, 1: 3, 2: 2}},
+                                {duration: 4, notes: {0: 2, 1: 3, 2: 2}},
+                                {duration: 8, notes: {3: 0}},
+                                {duration: 4, notes: {0: 2, 1: 3, 2: 2}},
+                                {duration: 4, notes: {0: 2, 1: 3, 2: 2}},
+                                {duration: 8, notes: {4: 3}},
+                                {duration: 8, notes: {4: 2}}
+                            ]
+                        },
+                        3: {
+                            noteColumns: [
+                                {duration: 8, notes: {4: 0}},
+                                {duration: 8, notes: {0: 0, 1: 1, 2: 0, 3: 2}},
+                                {duration: 4, notes: {3: 0}},
+                                {duration: 4, notes: {3: 2}},
+                                {duration: 8, notes: {0: 0, 1: 1, 2: 0, 3: 2}},
+                                {duration: 8, notes: {4: 0}},
+                                {duration: 8, notes: {0: 0, 1: 1, 2: 0, 3: 2}},
+                                {duration: 4, notes: {3: 0}},
+                                {duration: 4, notes: {3: 2}},
+                                {duration: 8, notes: {0: 0, 1: 1, 2: 0, 3: 2}}
+                            ]
+                        },
+                        4: {
+                            noteColumns: [
+                                {duration: 8, notes: {5: 3}},
+                                {duration: 8, notes: {0: 3, 1: 0, 2: 0, 3: 0}},
+                                {duration: 4, notes: {4: 0}},
+                                {duration: 4, notes: {4: 2}},
+                                {duration: 4, notes: {3: 0}},
+                                {duration: 4, notes: {3: 2}},
+                                {duration: 8, notes: {2: 0}},
+                                {duration: 8, notes: {5: 3}},
+                                {duration: 16, notes: {0: 3, 1: 0, 2: 0, 3: 0, 4: 2, 5: 3}}
+                            ]
+                        }
+                    }
+                }
+            ]
+        };
+    </script>
+    <script data-main="scripts/main" src="scripts/require.js"></script>
+</body>
+</html>

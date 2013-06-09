@@ -1,0 +1,87 @@
+body {
+    background-color: black;
+}
+
+#drawing-canvas {
+    margin: 0 auto;
+    padding: 1em 1em;
+    background-color: whitesmoke;
+    width: 60em;
+    height: 800px;
+}
+
+.tab-measure {
+    float: left;
+    position: relative;
+    overflow-y: auto;
+    height: auto;
+    overflow-x: hidden;
+}
+
+.tab-cursor {
+    top: 0;
+    bottom: 0;
+    height: auto;
+    border-right: 0px solid black;
+    width: 0;
+    position: absolute;
+    left: 0%;
+    transition-property: left;
+    transition-duration: 2.4s;
+    transition-timing-function: linear;
+}
+
+.active {
+    border-right: 1px solid black;
+    left: 100%;
+}
+
+#drawing-canvas table {
+    /*float: left;*/
+    display: block;
+    height: auto;
+    font-family: courier;
+    font-size: 1em;
+    -moz-box-sizing: border-box;
+    border-spacing: 0;
+    border-collapse: collapse;
+    border-right: 1px solid #a0a0a0;
+}
+#drawing-canvas tr {
+    display: block;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAABCAYAAADXeS5fAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAAVSURBVBhXY1yyZMn/P3/+MJAHGBgAZKQF4Sb2AzwAAAAASUVORK5CYII=) repeat-x center;
+}
+
+#drawing-canvas tr td:first-child {
+    padding-left: 0.2em;
+}
+#drawing-canvas tr td:last-child {
+    padding-right: 0.2em;
+}
+
+#drawing-canvas td {
+    height: 1.2em;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+#drawing-canvas span {
+    background-color: whitesmoke;
+}
+
+.dur64 {
+    width: 9.6em;
+}
+.dur32 {
+    width: 4.8em;
+}
+.dur16 {
+    width: 2.4em;
+}
+.dur8 {
+    width: 1.2em;
+}
+.dur4 {
+    width: 0.6em;
+}
