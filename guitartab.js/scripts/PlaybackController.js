@@ -15,6 +15,12 @@ define(function() {
         }
 
         document.getElementById('tab-measure-' + GuitarTab.currentMeasureIndex).firstChild.classList.add('active');
+
+        for (var i = 0; i < measureEvent.sounds.length; i++) {
+            MIDI.noteOn(0, measureEvent.sounds[i].note, 127, measureEvent.sounds[i].delay);
+            MIDI.noteOff(0, measureEvent.sounds[i].note, measureEvent.sounds[i].delay + measureEvent.sounds[i].duration);
+        }
+
         if (GuitarTab.currentMeasureIndex >= 1) {
             document.getElementById('tab-measure-' + (GuitarTab.currentMeasureIndex - 1)).firstChild.classList.remove('active');
         }
@@ -41,6 +47,7 @@ define(function() {
             }
         },
         calculateMeasureEvents: function() {
+            var stringNoteOffsets = [76, 71, 67, 62, 57, 52];
             GuitarTab.measureEvents = [];
             var timeOffset = 0;
             var currentMeasureLength = 0;
@@ -67,6 +74,28 @@ define(function() {
 
                 measureEvent.measureLength = currentMeasureLength;
                 document.getElementById('tab-measure-' + measureIndex).firstChild.style.transitionDuration =  currentMeasureLength + 'ms';
+
+                // Sound events
+                measureEvent.sounds = [];
+                for (var instrIndex = 0; instrIndex < GuitarTab.tab.parts.length; instrIndex++) {
+                    if (GuitarTab.tab.parts[instrIndex].measures[measureIndex] !== undefined &&
+                        GuitarTab.tab.parts[instrIndex].measures[measureIndex].noteColumns !== undefined) {
+                        var noteColumns = GuitarTab.tab.parts[instrIndex].measures[measureIndex].noteColumns;
+                        var currentDelay = 0;
+                        for (var columnIndex = 0; columnIndex < noteColumns.length; columnIndex++) {
+                            var durationInSeconds = ((noteColumns[columnIndex].duration * 60) / (GuitarTab.tab.beatsPerMinute * 16));
+
+                            for (var noteIndex in noteColumns[columnIndex].notes) {
+                                measureEvent.sounds.push({
+                                    delay: currentDelay,
+                                    duration: durationInSeconds,
+                                    note: stringNoteOffsets[noteIndex] + noteColumns[columnIndex].notes[noteIndex] });
+                            }
+
+                            currentDelay += durationInSeconds;
+                        }
+                    }
+                }
 
                 GuitarTab.measureEvents.push(measureEvent);
 

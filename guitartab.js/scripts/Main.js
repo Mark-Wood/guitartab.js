@@ -18,6 +18,12 @@ require(['Renderer', 'PlaybackController'], function(renderer, playbackControlle
 
         playbackController.calculateMeasureEvents();
 
-        document.getElementById('play-button').onclick = playbackController.play;
+        MIDI.loadPlugin({
+            soundfontUrl: "./soundfont/",
+            instrument: "acoustic_grand_piano",
+            callback: function() {
+                document.getElementById('play-button').onclick = playbackController.play;
+            }
+        });
     }
 });
