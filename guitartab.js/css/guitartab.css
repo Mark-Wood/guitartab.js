@@ -2,21 +2,22 @@ body {
     background-color: black;
 }
 
-#drawing-canvas {
-}
-
 #content {
     margin: 0 auto;
     padding: 1em 1em;
     background-color: whitesmoke;
     width: 60em;
-    height: 800px;
+    height: 1000px;
 }
 
-#play-button {
-    padding-top: 1em;
+#controls {
+    width: 100%;
+    border-top: 1px solid gray;
+    background-color: gray;
+    position: fixed;
+    bottom: 0;
+    left: 0;
     text-align: center;
-    clear: both;
 }
 
 .tab-measure {
@@ -35,13 +36,13 @@ body {
     width: 0;
     position: absolute;
     left: 0%;
-    transition-property: left;
-    transition-timing-function: linear;
 }
 
 .active {
     border-right: 1px solid black;
     left: 100%;
+    transition-timing-function: linear;
+    transition-property: left;
 }
 
 #drawing-canvas table {
@@ -76,6 +77,14 @@ body {
 
 #drawing-canvas span {
     background-color: whitesmoke;
+}
+
+.selected {
+    background-color: #e0f0ff;
+}
+
+.selected span {
+    background-color: #e0f0ff !important;
 }
 
 .dur64 {

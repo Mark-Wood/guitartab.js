@@ -5,11 +5,13 @@ https://github.com/Markozy/guitartab.js
 */
 
 define(function() {
+
     return {
         convertJsonMeasureToHtml: function(measure, numberOfStrings, index) {
             var measureContainer = document.createElement('div');
             measureContainer.id = 'tab-measure-' + index;
             measureContainer.className = 'tab-measure';
+            measureContainer.nodeValue = index;
 
             var cursor = document.createElement('div');
             cursor.className = 'tab-cursor';
@@ -34,7 +36,7 @@ define(function() {
                     var measureNote = document.createElement('td');
                     measureNote.classList.add('dur' + measure.noteColumns[colIndex].duration);
 
-                    if (measure.noteColumns[colIndex].notes[stringIndex] !== undefined) {
+                    if (typeof measure.noteColumns[colIndex].notes[stringIndex] !== "undefined") {
                         var measureNoteSpan = document.createElement('span');
                         measureNoteSpan.appendChild(document.createTextNode(measure.noteColumns[colIndex].notes[stringIndex]));
                         measureNote.appendChild(measureNoteSpan);
