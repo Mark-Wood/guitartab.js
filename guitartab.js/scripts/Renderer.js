@@ -11,7 +11,6 @@ define(function() {
             var measureContainer = document.createElement('div');
             measureContainer.id = 'tab-measure-' + index;
             measureContainer.className = 'tab-measure';
-            measureContainer.nodeValue = index;
 
             var cursor = document.createElement('div');
             cursor.className = 'tab-cursor';

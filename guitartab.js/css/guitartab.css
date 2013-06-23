@@ -36,13 +36,13 @@ body {
     width: 0;
     position: absolute;
     left: 0%;
+    transition-timing-function: linear;
+    transition-property: left;
 }
 
 .active {
     border-right: 1px solid black;
     left: 100%;
-    transition-timing-function: linear;
-    transition-property: left;
 }
 
 #drawing-canvas table {
