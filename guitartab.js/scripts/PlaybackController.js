@@ -1,11 +1,38 @@
 if (typeof GuitarTab === "undefined") var GuitarTab = {};
 
-define(['midi'], function(midi) {
+define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
+    var playbackController = new EventEmitter();
     var playing = false;
     var timeouts = [];
     var currentInterval;
     var playbackPosition;
     var timeAtStart;
+
+    function startPlayback() {
+        playbackPosition = playbackPosition || 0;
+        timeAtStart = new Date().getTime() - playbackPosition; // Set the effective start time
+
+        if (typeof GuitarTab.measureEvents === "undefined") this.calculateMeasureEvents();
+
+        var queueMeasure = function(i, measureStartTime) {
+            timeouts.push(setTimeout(function() {
+                playMeasure(i);
+            }, measureStartTime));
+        };
+
+        for (var i = 0; i < GuitarTab.measureEvents.length; i++) {
+            var measureEvent = GuitarTab.measureEvents[i];
+
+            // If we're resuming from after this measure, ignore
+            if (measureEvent.offset + measureEvent.measureLength < playbackPosition) continue;
+
+            if (measureEvent.offset < playbackPosition){
+                queueMeasure(i, 0);
+            } else if (measureEvent.startInterval) {
+                queueMeasure(i, GuitarTab.measureEvents[i].offset - playbackPosition);
+            }
+        }
+    }
 
     function startMeasure(measure) {
         var playbackPositionInMeasure = playbackPosition - measure.offset;
@@ -25,12 +52,12 @@ define(['midi'], function(midi) {
     }
 
     function resetMeasure(measure) {
-        if (measure.active) {
-            measure.cursor.style.transitionDuration = "";
-            measure.active = false;
+        measure.cursor.style.left = '';
+        measure.cursor.style.borderRightWidth = '';
+        measure.cursor.style.transitionDuration = '';
+        measure.active = false;
 
-            setTimeout(function(){measure.cursor.classList.remove('active');}, 0);
-        }
+        setTimeout(function(){measure.cursor.classList.remove('active');}, 0);
     }
 
     function stopCurrentInterval() {
@@ -40,7 +67,7 @@ define(['midi'], function(midi) {
         }
     }
 
-    function playMeasure(index, playbackStateChange) {
+    function playMeasure(index) {
         if (!playing) return;
 
         // If we've reached the end
@@ -48,7 +75,7 @@ define(['midi'], function(midi) {
             stopCurrentInterval();
             playbackPosition = 0;
             playing = false;
-            playbackStateChange.call({}, playing);
+            playbackController.emit('playbackStateChange', playing);
             return;
         }
 
@@ -56,7 +83,7 @@ define(['midi'], function(midi) {
 
         if (measureEvent.offset < playbackPosition){
             // Queue up the next measure
-            timeouts.push(setTimeout(function() { playMeasure(index + 1, playbackStateChange); }, measureEvent.measureLength - (playbackPosition - measureEvent.offset)));
+            timeouts.push(setTimeout(function() { playMeasure(index + 1); }, measureEvent.measureLength - (playbackPosition - measureEvent.offset)));
         } else {
             playbackPosition = measureEvent.offset;
 
@@ -65,7 +92,7 @@ define(['midi'], function(midi) {
                 var indexToPlay = index + 1;
 
                 currentInterval = setInterval(function() {
-                    playMeasure(indexToPlay++, playbackStateChange);
+                    playMeasure(indexToPlay++);
                 }, measureEvent.measureLength);
             }
         }
@@ -79,7 +106,9 @@ define(['midi'], function(midi) {
     }
 
     function onMeasureClick(e) {
-        if (!playing) {
+        if (playing) {
+            killPlaybackEvents();
+        } else {
             if (typeof playbackPosition !== "undefined") {
                 var i = 0;
                 while ((GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition) i++;
@@ -87,155 +116,146 @@ define(['midi'], function(midi) {
                 existingSelection.firstChild.style.left = '';
                 existingSelection.firstChild.style.borderRightWidth = '';
             }
+        }
 
-            // Get x co-ordinate as a percentage
-            var x = ((e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - this.offsetLeft) / this.offsetWidth;
-            var index = parseInt(this.id.match(/\d+$/));
+        // Get x co-ordinate as a percentage
+        var x = ((e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - this.offsetLeft) / this.offsetWidth;
+        var index = parseInt(this.id.match(/\d+$/));
 
-            playbackPosition = GuitarTab.measureEvents[index].offset + (GuitarTab.measureEvents[index].measureLength * x);
-            this.firstChild.style.left = (x * 100) + '%';
-            this.firstChild.style.borderRightWidth = '1px';
+        playbackPosition = GuitarTab.measureEvents[index].offset + (GuitarTab.measureEvents[index].measureLength * x);
+        this.firstChild.style.left = (x * 100) + '%';
+        this.firstChild.style.borderRightWidth = '1px';
+
+        if (playing) {
+            setTimeout(startPlayback, 0);
         }
     }
 
-    return {
-        calculateMeasureEvents: function() {
-            var stringNoteOffsets = [76, 71, 67, 62, 57, 52];
-            GuitarTab.measureEvents = [];
-            var tab = GuitarTab.tab;
-            var measureOffset = 0;
-            var measureDuration = 0;
+    function killPlaybackEvents() {
+        // Cleared any queued up measures
+        while (timeouts.length) clearTimeout(timeouts.pop());
+        stopCurrentInterval();
 
-            // If undefined time signature, default to 4/4
-            if (typeof tab.measureTimeSignatures[0] === "undefined") {
-                tab.measureTimeSignatures[0] = { beatsPerMeasure: 4, beatLength: 4 };
+        // Get the measure currently playing
+        var i = 0;
+        while ((GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition) i++;
+        var measureEvent = GuitarTab.measureEvents[i];
+
+        // Kill all currently playing and queued audio
+        for (var i = 0; i < measureEvent.sounds.length; i++) {
+            var onSource = measureEvent.sounds[i].onSource;
+            var offSource = measureEvent.sounds[i].offSource;
+
+            if (!onSource) continue; // is not web audio
+            if (typeof(onSource) === "number") {
+                window.clearTimeout(onSource);
+                window.clearTimeout(offSource);
+            } else { // web audio
+                onSource.disconnect(0);
+                onSource.noteOff(0);
+                offSource.disconnect(0);
+                offSource.noteOff(0);
+            }
+        }
+        resetMeasure(measureEvent);
+    }
+
+    playbackController.calculateMeasureEvents = function() {
+        var stringNoteOffsets = [76, 71, 67, 62, 57, 52];
+        GuitarTab.measureEvents = [];
+        var tab = GuitarTab.tab;
+        var measureOffset = 0;
+        var measureDuration = 0;
+
+        // If undefined time signature, default to 4/4
+        if (typeof tab.measureTimeSignatures[0] === "undefined") {
+            tab.measureTimeSignatures[0] = { beatsPerMeasure: 4, beatLength: 4 };
+        }
+
+        for (var m = 0; m < tab.lengthInMeasures; m++) {
+            var measureEvent = {
+                active: false,
+                cursor: document.getElementById('tab-measure-' + m).firstChild,
+                index: m,
+                measureLength: 0,
+                offset: measureOffset,
+                sounds: [],
+                startInterval: false,
+                stopInterval: false
+            };
+
+            // If there is a time signature change at the start of this measure
+            if (typeof tab.measureTimeSignatures[m] !== "undefined") {
+                measureEvent.startInterval = true;
+
+                if (m >= 1) GuitarTab.measureEvents[m - 1].stopInterval = true;
+
+                measureDuration = (60000 * 4 * tab.measureTimeSignatures[m].beatsPerMeasure) /
+                                  (tab.beatsPerMinute * tab.measureTimeSignatures[m].beatLength);
             }
 
-            for (var m = 0; m < tab.lengthInMeasures; m++) {
-                var measureEvent = {
-                    active: false,
-                    cursor: document.getElementById('tab-measure-' + m).firstChild,
-                    index: m,
-                    measureLength: 0,
-                    offset: measureOffset,
-                    sounds: [],
-                    startInterval: false,
-                    stopInterval: false
-                };
+            measureEvent.measureLength = measureDuration;
 
-                // If there is a time signature change at the start of this measure
-                if (typeof tab.measureTimeSignatures[m] !== "undefined") {
-                    measureEvent.startInterval = true;
+            // Sound events
+            for (var i = 0; i < tab.parts.length; i++) {
+                if (typeof tab.parts[i].measures[m] !== "undefined" &&
+                    typeof tab.parts[i].measures[m].noteColumns !== "undefined") {
+                    var noteColumns = tab.parts[i].measures[m].noteColumns;
+                    var noteOffset = 0;
 
-                    if (m >= 1) GuitarTab.measureEvents[m - 1].stopInterval = true;
+                    for (var c = 0; c < noteColumns.length; c++) {
+                        var durationInMs = ((noteColumns[c].duration * 60000) / (tab.beatsPerMinute * 16));
 
-                    measureDuration = (60000 * 4 * tab.measureTimeSignatures[m].beatsPerMeasure) /
-                                      (tab.beatsPerMinute * tab.measureTimeSignatures[m].beatLength);
-                }
-
-                measureEvent.measureLength = measureDuration;
-
-                // Sound events
-                for (var i = 0; i < tab.parts.length; i++) {
-                    if (typeof tab.parts[i].measures[m] !== "undefined" &&
-                        typeof tab.parts[i].measures[m].noteColumns !== "undefined") {
-                        var noteColumns = tab.parts[i].measures[m].noteColumns;
-                        var noteOffset = 0;
-
-                        for (var c = 0; c < noteColumns.length; c++) {
-                            var durationInMs = ((noteColumns[c].duration * 60000) / (tab.beatsPerMinute * 16));
-
-                            for (var n in noteColumns[c].notes) {
-                                measureEvent.sounds.push({
-                                    offset: noteOffset,
-                                    duration: durationInMs - 10,
-                                    note: stringNoteOffsets[n] + noteColumns[c].notes[n],
-                                    onSource: undefined,
-                                    offSource: undefined
-                                });
-                            }
-
-                            noteOffset += durationInMs;
+                        for (var n in noteColumns[c].notes) {
+                            measureEvent.sounds.push({
+                                offset: noteOffset,
+                                duration: durationInMs - 10,
+                                note: stringNoteOffsets[n] + noteColumns[c].notes[n],
+                                onSource: undefined,
+                                offSource: undefined
+                            });
                         }
+
+                        noteOffset += durationInMs;
                     }
                 }
-
-                GuitarTab.measureEvents.push(measureEvent);
-
-                measureOffset += measureDuration;
-            }
-        },
-
-        play: function(playbackStateChange) {
-            if (playing) {
-                // Cleared any queued up measures
-                while (timeouts.length) clearTimeout(timeouts.pop());
-                stopCurrentInterval();
-
-                // Get the measure currently playing
-                var i = 0;
-                while ((GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition) i++;
-                var measureEvent = GuitarTab.measureEvents[i];
-
-                // Kill all currently playing and queued audio
-                for (var i = 0; i < measureEvent.sounds.length; i++) {
-                    var onSource = measureEvent.sounds[i].onSource;
-                    var offSource = measureEvent.sounds[i].offSource;
-
-                    if (!onSource) continue; // is not web audio
-                    if (typeof(onSource) === "number") {
-                        window.clearTimeout(onSource);
-                        window.clearTimeout(offSource);
-                    } else { // web audio
-                        onSource.disconnect(0);
-                        onSource.noteOff(0);
-                        offSource.disconnect(0);
-                        offSource.noteOff(0);
-                    }
-                }
-                resetMeasure(measureEvent);
-
-                playbackPosition = new Date().getTime() - timeAtStart;
-                // Get the measure that the user has paused in
-                for (var i = 0; (GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition; i++);
-                measureEvent = GuitarTab.measureEvents[i];
-
-                measureEvent.cursor.style.left = ((playbackPosition - measureEvent.offset) * 100 / measureEvent.measureLength) + '%';
-                measureEvent.cursor.style.borderRightWidth = '1px';
-
-                playing = false;
-            } else {
-                playbackPosition = playbackPosition || 0;
-                timeAtStart = new Date().getTime() - playbackPosition; // Set the effective start time
-
-                if (typeof GuitarTab.measureEvents === "undefined") this.calculateMeasureEvents();
-
-                var queueMeasure = function(i, measureStartTime) {
-                    timeouts.push(setTimeout(function() {
-                        playMeasure(i, playbackStateChange);
-                    }, measureStartTime));
-                };
-
-                for (var i = 0; i < GuitarTab.measureEvents.length; i++) {
-                    var measureEvent = GuitarTab.measureEvents[i];
-
-                    // If we're resuming from after this measure, ignore
-                    if (measureEvent.offset + measureEvent.measureLength < playbackPosition) continue;
-
-                    if (measureEvent.offset < playbackPosition){
-                        queueMeasure(i, 0);
-                    } else if (measureEvent.startInterval) {
-                        queueMeasure(i, GuitarTab.measureEvents[i].offset - playbackPosition);
-                    }
-                }
-                playing = true;
             }
 
-            playbackStateChange.call({}, playing);
-        },
+            GuitarTab.measureEvents.push(measureEvent);
 
-        attachTabEventHandlers: function(element) {
-            element.onclick = onMeasureClick;
+            measureOffset += measureDuration;
         }
     };
+
+    playbackController.pause = function() {
+        if (playing) {
+            killPlaybackEvents();
+
+            playbackPosition = new Date().getTime() - timeAtStart;
+            // Get the measure that the user has paused in
+            for (var i = 0; (GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition; i++);
+            var measureEvent = GuitarTab.measureEvents[i];
+
+            measureEvent.cursor.style.left = ((playbackPosition - measureEvent.offset) * 100 / measureEvent.measureLength) + '%';
+            measureEvent.cursor.style.borderRightWidth = '1px';
+
+            playing = false;
+            playbackController.emit('playbackStateChange', playing);
+        }
+    };
+
+    playbackController.play = function() {
+        if (!playing) {
+            startPlayback();
+
+            playing = true;
+            playbackController.emit('playbackStateChange', playing);
+        }
+    };
+
+    playbackController.attachTabEventHandlers = function(element) {
+        element.onclick = onMeasureClick;
+    };
+
+    return playbackController;
 });

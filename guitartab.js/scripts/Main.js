@@ -2,12 +2,13 @@ if (typeof (GuitarTab) === "undefined") var GuitarTab = {};
 
 requirejs.config({
     paths: {
-        midi: '../deps/MIDI.js/MIDI.min'
+        midi: '../deps/MIDI.js/MIDI.min',
+        EventEmitter: '../deps/node.js/EventEmitter'
     }
 });
 
 require(['Renderer', 'PlaybackController'], function(renderer, playbackController){
-    function onPlaybackStateChange(playing) {
+    playbackController.on('playbackStateChange', function onPlaybackStateChange(playing) {
         if (playing) {
             document.getElementById('play-icon').style.visibility = 'hidden';
             document.getElementById('pause-icon').style.visibility = 'visible';
@@ -15,7 +16,7 @@ require(['Renderer', 'PlaybackController'], function(renderer, playbackControlle
             document.getElementById('play-icon').style.visibility = 'visible';
             document.getElementById('pause-icon').style.visibility = 'hidden';
         }
-    }
+    });
 
     if (GuitarTab.tab){
         document.getElementById('tab-title').appendChild(document.createTextNode(GuitarTab.tab.title));
@@ -40,8 +41,11 @@ require(['Renderer', 'PlaybackController'], function(renderer, playbackControlle
             soundfontUrl: "./soundfont/",
             instrument: "acoustic_grand_piano",
             callback: function() {
-                document.getElementById('play-button').onclick = function() {
-                    playbackController.play(onPlaybackStateChange);
+                document.getElementById('play-icon').onclick = function() {
+                    playbackController.play();
+                };
+                document.getElementById('pause-icon').onclick = function() {
+                    playbackController.pause();
                 };
                 document.getElementById('play-icon').style.visibility = 'visible';
             }
