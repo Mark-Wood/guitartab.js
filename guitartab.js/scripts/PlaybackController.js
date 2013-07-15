@@ -1,18 +1,18 @@
 if (typeof GuitarTab === "undefined") var GuitarTab = {};
 
-define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
-    var playbackController = new EventEmitter();
-    var playing = false;
+define(['midi', 'EventEmitter'], function(midi, events) {
+    if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
+
     var timeouts = [];
     var currentInterval;
     var playbackPosition;
     var timeAtStart;
 
-    function startPlayback() {
+    var playbackController = {};
+
+    var startPlayback = function() {
         playbackPosition = playbackPosition || 0;
         timeAtStart = new Date().getTime() - playbackPosition; // Set the effective start time
-
-        if (typeof GuitarTab.measureEvents === "undefined") this.calculateMeasureEvents();
 
         var queueMeasure = function(i, measureStartTime) {
             timeouts.push(setTimeout(function() {
@@ -34,7 +34,7 @@ define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
         }
     }
 
-    function startMeasure(measure) {
+    var startMeasure = function(measure) {
         var playbackPositionInMeasure = playbackPosition - measure.offset;
         measure.cursor.style.left = '';
         measure.cursor.style.borderRightWidth = '';
@@ -51,7 +51,7 @@ define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
         measure.active = true;
     }
 
-    function resetMeasure(measure) {
+    var resetMeasure = function(measure) {
         measure.cursor.style.left = '';
         measure.cursor.style.borderRightWidth = '';
         measure.cursor.style.transitionDuration = '';
@@ -60,22 +60,22 @@ define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
         setTimeout(function(){measure.cursor.classList.remove('active');}, 0);
     }
 
-    function stopCurrentInterval() {
+    var stopCurrentInterval = function() {
         if (currentInterval) {
             clearInterval(currentInterval);
             currentInterval = null;
         }
     }
 
-    function playMeasure(index) {
-        if (!playing) return;
+    var playMeasure = function(index) {
+        if (GuitarTab.state !== 'playback') return;
 
         // If we've reached the end
         if (index === GuitarTab.tab.lengthInMeasures) {
             stopCurrentInterval();
             playbackPosition = 0;
-            playing = false;
-            playbackController.emit('playbackStateChange', playing);
+            GuitarTab.state = null;
+            GuitarTab.emitter.emit('playbackState', { playing: false });
             return;
         }
 
@@ -105,33 +105,7 @@ define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
         }
     }
 
-    function onMeasureClick(e) {
-        if (playing) {
-            killPlaybackEvents();
-        } else {
-            if (typeof playbackPosition !== "undefined") {
-                var i = 0;
-                while ((GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition) i++;
-                var existingSelection = document.getElementById('tab-measure-' + i);
-                existingSelection.firstChild.style.left = '';
-                existingSelection.firstChild.style.borderRightWidth = '';
-            }
-        }
-
-        // Get x co-ordinate as a percentage
-        var x = ((e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - this.offsetLeft) / this.offsetWidth;
-        var index = parseInt(this.id.match(/\d+$/));
-
-        playbackPosition = GuitarTab.measureEvents[index].offset + (GuitarTab.measureEvents[index].measureLength * x);
-        this.firstChild.style.left = (x * 100) + '%';
-        this.firstChild.style.borderRightWidth = '1px';
-
-        if (playing) {
-            setTimeout(startPlayback, 0);
-        }
-    }
-
-    function killPlaybackEvents() {
+    var killPlaybackEvents = function() {
         // Cleared any queued up measures
         while (timeouts.length) clearTimeout(timeouts.pop());
         stopCurrentInterval();
@@ -158,6 +132,36 @@ define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
             }
         }
         resetMeasure(measureEvent);
+    }
+
+    playbackController.setPlaybackPosition = function(measureIndex, xCoordinate, measureWidth) {
+        if (GuitarTab.state === 'playback') {
+            killPlaybackEvents();
+        } else {
+            if (typeof GuitarTab.measureEvents === 'undefined') playbackController.calculateMeasureEvents();
+
+            // Clear any existing cursor
+            if (typeof playbackPosition !== "undefined") {
+                var i = 0;
+                while ((GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition) i++;
+                var currentMeasureContainer = document.getElementById('tab-measure-' + i);
+                currentMeasureContainer.firstChild.style.left = '';
+                currentMeasureContainer.firstChild.style.borderRightWidth = '';
+            }
+        }
+
+        playbackPosition = GuitarTab.measureEvents[measureIndex].offset + (GuitarTab.measureEvents[measureIndex].measureLength * xCoordinate / measureWidth);
+
+        // Move the cursor to position
+        var targetMeasureContainer = document.getElementById('tab-measure-' + measureIndex);
+        targetMeasureContainer.firstChild.style.left = (xCoordinate * 100 / measureWidth) + '%';
+        targetMeasureContainer.firstChild.style.borderRightWidth = '1px';
+
+        GuitarTab.emitter.emit('playbackPosition', { playbackPosition: playbackPosition });
+
+        if (GuitarTab.state === 'playback') {
+            setTimeout(startPlayback, 0);
+        }
     }
 
     playbackController.calculateMeasureEvents = function() {
@@ -228,7 +232,7 @@ define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
     };
 
     playbackController.pause = function() {
-        if (playing) {
+        if (GuitarTab.state === 'playback') {
             killPlaybackEvents();
 
             playbackPosition = new Date().getTime() - timeAtStart;
@@ -239,23 +243,39 @@ define(['midi', 'EventEmitter'], function(midi, EventEmitter) {
             measureEvent.cursor.style.left = ((playbackPosition - measureEvent.offset) * 100 / measureEvent.measureLength) + '%';
             measureEvent.cursor.style.borderRightWidth = '1px';
 
-            playing = false;
-            playbackController.emit('playbackStateChange', playing);
+            GuitarTab.state = null;
+            GuitarTab.emitter.emit('playbackState', { playing: false });
         }
     };
 
     playbackController.play = function() {
-        if (!playing) {
+        if (typeof GuitarTab.measureEvents === "undefined") playbackController.calculateMeasureEvents();
+
+        if (GuitarTab.state !== 'playback') {
             startPlayback();
 
-            playing = true;
-            playbackController.emit('playbackStateChange', playing);
+            GuitarTab.state = 'playback';
+            GuitarTab.emitter.emit('playbackState', { playing: true });
         }
     };
 
-    playbackController.attachTabEventHandlers = function(element) {
-        element.onclick = onMeasureClick;
-    };
+    GuitarTab.emitter.on('playbackState', function(e) {
+        if (e.playing) {
+            document.getElementById('play-icon').style.visibility = 'hidden';
+            document.getElementById('pause-icon').style.visibility = 'visible';
+        } else {
+            document.getElementById('play-icon').style.visibility = 'visible';
+            document.getElementById('pause-icon').style.visibility = 'hidden';
+        }
+    });
+
+    GuitarTab.emitter.on('playbackPosition', function(e) {
+        // scroll to measure container
+    });
+
+    GuitarTab.emitter.on('measure', function(e) {
+        delete GuitarTab.measureEvents;
+    });
 
     return playbackController;
 });

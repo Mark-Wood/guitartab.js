@@ -258,5 +258,5 @@ define(function () {
         return ret;
     };
 
-    return EventEmitter;
+    return { EventEmitter: EventEmitter };
 });

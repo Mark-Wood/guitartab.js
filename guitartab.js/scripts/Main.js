@@ -1,4 +1,4 @@
-if (typeof (GuitarTab) === "undefined") var GuitarTab = {};
+if (typeof GuitarTab === "undefined") var GuitarTab = {};
 
 requirejs.config({
     paths: {
@@ -7,32 +7,34 @@ requirejs.config({
     }
 });
 
-require(['Renderer', 'PlaybackController'], function(renderer, playbackController){
-    playbackController.on('playbackStateChange', function onPlaybackStateChange(playing) {
-        if (playing) {
-            document.getElementById('play-icon').style.visibility = 'hidden';
-            document.getElementById('pause-icon').style.visibility = 'visible';
-        } else {
-            document.getElementById('play-icon').style.visibility = 'visible';
-            document.getElementById('pause-icon').style.visibility = 'hidden';
+require(['Renderer', 'PlaybackController', 'EventEmitter'], function(renderer, playbackController, events){
+    if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
+
+    var onMeasureClick = function(e) {
+        var index = parseInt(this.id.match(/\d+$/));
+        var xCoordinate = (e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - this.offsetLeft;
+        var measureWidth = this.offsetWidth;
+
+        playbackController.setPlaybackPosition(index, xCoordinate, measureWidth);
+    };
+
+    GuitarTab.emitter.on('measure', function(e) {
+        if (e.event == 'added') {
+            document.getElementById('tab-measure-' + e.index).onclick = onMeasureClick;
         }
     });
 
-    if (GuitarTab.tab){
+    if (typeof GuitarTab.tab !== 'undefined'){
         document.getElementById('tab-title').appendChild(document.createTextNode(GuitarTab.tab.title));
         document.getElementById('tab-artist').appendChild(document.createTextNode(GuitarTab.tab.artist));
 
         var drawingCanvas = document.getElementById('drawing-canvas');
 
         // Convert to HTML and attach to the DOM
-        for (var partIndex = 0; partIndex < GuitarTab.tab.parts.length; partIndex++) {
-            var part = GuitarTab.tab.parts[partIndex];
+        renderer.renderTab(GuitarTab.tab, drawingCanvas);
 
-            for (var measureIndex = 0; measureIndex < GuitarTab.tab.lengthInMeasures; measureIndex++) {
-                var measureElement = renderer.convertJsonMeasureToHtml(part.measures[measureIndex], part.numberOfStrings, measureIndex);
-                playbackController.attachTabEventHandlers(measureElement);
-                drawingCanvas.appendChild(measureElement);
-            }
+        for (var measureIndex = 0; measureIndex < GuitarTab.tab.lengthInMeasures; measureIndex++) {
+            document.getElementById('tab-measure-' + measureIndex).onclick = onMeasureClick;
         }
 
         playbackController.calculateMeasureEvents();

@@ -86,19 +86,3 @@ body {
 .selected span {
     background-color: #e0f0ff !important;
 }
-
-.dur64 {
-    width: 9.6em;
-}
-.dur32 {
-    width: 4.8em;
-}
-.dur16 {
-    width: 2.4em;
-}
-.dur8 {
-    width: 1.2em;
-}
-.dur4 {
-    width: 0.6em;
-}
