@@ -7,7 +7,7 @@ requirejs.config({
     }
 });
 
-require(['Renderer', 'PlaybackController', 'EventEmitter'], function(renderer, playbackController, events){
+require(['Renderer', 'PlaybackController', 'Editor', 'EventEmitter'], function(renderer, playbackController, editor, events){
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     var onMeasureClick = function(e) {
@@ -18,13 +18,35 @@ require(['Renderer', 'PlaybackController', 'EventEmitter'], function(renderer, p
         playbackController.setPlaybackPosition(index, xCoordinate, measureWidth);
     };
 
+    var onMeasureCellInput = function(e) {
+        var measureIndex = parseInt(e.target.parentNode.parentNode.parentNode.parentNode.id.match(/\d+$/));
+        var row = e.target.parentNode.parentNode.sectionRowIndex;
+        var col = e.target.parentNode.cellIndex;
+
+        editor.setNote(measureIndex, row, col, e.target.innerText);
+    };
+
+    var onMeasureCellClick = function(e) {
+        this.firstChild.focus();
+    };
+
     GuitarTab.emitter.on('measure', function(e) {
         if (e.event == 'added') {
-            document.getElementById('tab-measure-' + e.index).onclick = onMeasureClick;
+            addMeasureContainerEventListeners(document.getElementById('tab-measure-' + e.index));
         }
     });
 
-    if (typeof GuitarTab.tab !== 'undefined'){
+    var addMeasureContainerEventListeners = function(measureContainer) {
+        measureContainer.addEventListener('click', onMeasureClick);
+
+        var measureCells = measureContainer.getElementsByTagName('td');
+        for (var i = 0; i < measureCells.length; i++) {
+            measureCells[i].firstChild.addEventListener('input', onMeasureCellInput);
+            measureCells[i].addEventListener('click', onMeasureCellClick);
+        }
+    };
+
+    if (typeof GuitarTab.tab !== 'undefined') {
         document.getElementById('tab-title').appendChild(document.createTextNode(GuitarTab.tab.title));
         document.getElementById('tab-artist').appendChild(document.createTextNode(GuitarTab.tab.artist));
 
@@ -34,21 +56,22 @@ require(['Renderer', 'PlaybackController', 'EventEmitter'], function(renderer, p
         renderer.renderTab(GuitarTab.tab, drawingCanvas);
 
         for (var measureIndex = 0; measureIndex < GuitarTab.tab.lengthInMeasures; measureIndex++) {
-            document.getElementById('tab-measure-' + measureIndex).onclick = onMeasureClick;
+            addMeasureContainerEventListeners(document.getElementById('tab-measure-' + measureIndex));
         }
 
         playbackController.calculateMeasureEvents();
+        editor.setTabEditable(true);
 
         MIDI.loadPlugin({
             soundfontUrl: "./soundfont/",
             instrument: "acoustic_grand_piano",
             callback: function() {
-                document.getElementById('play-icon').onclick = function() {
+                document.getElementById('play-icon').addEventListener('click', function() {
                     playbackController.play();
-                };
-                document.getElementById('pause-icon').onclick = function() {
+                });
+                document.getElementById('pause-icon').addEventListener('click', function() {
                     playbackController.pause();
-                };
+                });
                 document.getElementById('play-icon').style.visibility = 'visible';
             }
         });
