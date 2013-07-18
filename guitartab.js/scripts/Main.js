@@ -11,23 +11,24 @@ require(['Renderer', 'PlaybackController', 'Editor', 'EventEmitter'], function(r
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     var onMeasureClick = function(e) {
-        var index = parseInt(this.id.match(/\d+$/));
-        var xCoordinate = (e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - this.offsetLeft;
-        var measureWidth = this.offsetWidth;
+        var index = parseInt(e.currentTarget.id.match(/\d+$/));
+        var xCoordinate = (e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - e.currentTarget.offsetLeft;
+        var measureWidth = e.currentTarget.offsetWidth;
 
         playbackController.setPlaybackPosition(index, xCoordinate, measureWidth);
     };
 
     var onMeasureCellInput = function(e) {
-        var measureIndex = parseInt(e.target.parentNode.parentNode.parentNode.parentNode.id.match(/\d+$/));
-        var row = e.target.parentNode.parentNode.sectionRowIndex;
-        var col = e.target.parentNode.cellIndex;
+        var span = $(e.target);
+        var measureIndex = parseInt(span.closest('.tab-measure').attr('id').match(/\d+$/));
+        var row = span.closest('tr')[0].sectionRowIndex;
+        var col = span.closest('td')[0].cellIndex;
 
         editor.setNote(measureIndex, row, col, e.target.innerText);
     };
 
     var onMeasureCellClick = function(e) {
-        this.firstChild.focus();
+        e.currentTarget.getElementsByTagName('span')[0].focus();
     };
 
     GuitarTab.emitter.on('measure', function(e) {
