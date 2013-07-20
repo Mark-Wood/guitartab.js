@@ -34,5 +34,9 @@ define(['EventEmitter'], function(events) {
         editor.setTabEditable(!e.playing);
     });
 
+    GuitarTab.emitter.on('loaded', function(e) {
+        editor.setTabEditable(true);
+    });
+
     return editor;
 });
