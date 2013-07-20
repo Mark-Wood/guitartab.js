@@ -7,16 +7,8 @@ requirejs.config({
     }
 });
 
-require(['Renderer', 'Player', 'Editor', 'EventEmitter'], function(renderer, player, editor, events){
+require(['Renderer', 'PlayerController', 'Editor', 'EventEmitter'], function(renderer, playerController, editor, events){
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
-
-    var onMeasureClick = function(e) {
-        var index = parseInt(e.currentTarget.id.match(/\d+$/));
-        var xCoordinate = (e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - e.currentTarget.offsetLeft;
-        var measureWidth = e.currentTarget.offsetWidth;
-
-        player.setPlaybackPosition(index, xCoordinate, measureWidth);
-    };
 
     var onMeasureCellInput = function(e) {
         var span = $(e.target);
@@ -38,8 +30,6 @@ require(['Renderer', 'Player', 'Editor', 'EventEmitter'], function(renderer, pla
     });
 
     var addMeasureContainerEventListeners = function(measureContainer) {
-        measureContainer.addEventListener('click', onMeasureClick);
-
         var measureCells = measureContainer.getElementsByTagName('td');
         for (var i = 0; i < measureCells.length; i++) {
             measureCells[i].firstChild.addEventListener('input', onMeasureCellInput);
@@ -57,23 +47,18 @@ require(['Renderer', 'Player', 'Editor', 'EventEmitter'], function(renderer, pla
         renderer.renderTab(GuitarTab.tab, drawingCanvas);
 
         for (var measureIndex = 0; measureIndex < GuitarTab.tab.lengthInMeasures; measureIndex++) {
-            addMeasureContainerEventListeners(document.getElementById('tab-measure-' + measureIndex));
+            var measureContainer = document.getElementById('tab-measure-' + measureIndex);
+            addMeasureContainerEventListeners(measureContainer);
+            playerController.addMeasureContainerEventListeners(measureContainer);
         }
 
-        player.calculateMeasureEvents();
         editor.setTabEditable(true);
 
         MIDI.loadPlugin({
             soundfontUrl: "./soundfont/",
             instrument: "acoustic_grand_piano",
             callback: function() {
-                document.getElementById('play-icon').addEventListener('click', function() {
-                    player.play();
-                });
-                document.getElementById('pause-icon').addEventListener('click', function() {
-                    player.pause();
-                });
-                document.getElementById('play-icon').style.visibility = 'visible';
+                GuitarTab.emitter.emit('loaded');
             }
         });
     }

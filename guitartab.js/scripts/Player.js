@@ -134,37 +134,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         resetMeasure(measureEvent);
     }
 
-    player.setPlaybackPosition = function(measureIndex, xCoordinate, measureWidth) {
-        if (GuitarTab.state === 'playback') {
-            killPlaybackEvents();
-        } else {
-            if (typeof GuitarTab.measureEvents === 'undefined') player.calculateMeasureEvents();
-
-            // Clear any existing cursor
-            if (typeof playbackPosition !== "undefined") {
-                var i = 0;
-                while ((GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition) i++;
-                var currentMeasureContainer = document.getElementById('tab-measure-' + i);
-                currentMeasureContainer.firstChild.style.left = '';
-                currentMeasureContainer.firstChild.style.borderRightWidth = '';
-            }
-        }
-
-        playbackPosition = GuitarTab.measureEvents[measureIndex].offset + (GuitarTab.measureEvents[measureIndex].measureLength * xCoordinate / measureWidth);
-
-        // Move the cursor to position
-        var targetMeasureContainer = document.getElementById('tab-measure-' + measureIndex);
-        targetMeasureContainer.firstChild.style.left = (xCoordinate * 100 / measureWidth) + '%';
-        targetMeasureContainer.firstChild.style.borderRightWidth = '1px';
-
-        GuitarTab.emitter.emit('playbackPosition', { playbackPosition: playbackPosition });
-
-        if (GuitarTab.state === 'playback') {
-            setTimeout(startPlayback, 0);
-        }
-    }
-
-    player.calculateMeasureEvents = function() {
+    var calculateMeasureEvents = function() {
         var stringNoteOffsets = [76, 71, 67, 62, 57, 52];
         GuitarTab.measureEvents = [];
         var tab = GuitarTab.tab;
@@ -195,7 +165,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
                 if (m >= 1) GuitarTab.measureEvents[m - 1].stopInterval = true;
 
                 measureDuration = (60000 * 4 * tab.measureTimeSignatures[m].beatsPerMeasure) /
-                                  (tab.beatsPerMinute * tab.measureTimeSignatures[m].beatLength);
+                    (tab.beatsPerMinute * tab.measureTimeSignatures[m].beatLength);
             }
 
             measureEvent.measureLength = measureDuration;
@@ -231,6 +201,36 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         }
     };
 
+    player.setPlaybackPosition = function(measureIndex, xCoordinate, measureWidth) {
+        if (GuitarTab.state === 'playback') {
+            killPlaybackEvents();
+        } else {
+            if (typeof GuitarTab.measureEvents === 'undefined') calculateMeasureEvents();
+
+            // Clear any existing cursor
+            if (typeof playbackPosition !== "undefined") {
+                var i = 0;
+                while ((GuitarTab.measureEvents[i].offset + GuitarTab.measureEvents[i].measureLength) <= playbackPosition) i++;
+                var currentMeasureContainer = document.getElementById('tab-measure-' + i);
+                currentMeasureContainer.firstChild.style.left = '';
+                currentMeasureContainer.firstChild.style.borderRightWidth = '';
+            }
+        }
+
+        playbackPosition = GuitarTab.measureEvents[measureIndex].offset + (GuitarTab.measureEvents[measureIndex].measureLength * xCoordinate / measureWidth);
+
+        // Move the cursor to position
+        var targetMeasureContainer = document.getElementById('tab-measure-' + measureIndex);
+        targetMeasureContainer.firstChild.style.left = (xCoordinate * 100 / measureWidth) + '%';
+        targetMeasureContainer.firstChild.style.borderRightWidth = '1px';
+
+        GuitarTab.emitter.emit('playbackPosition', { playbackPosition: playbackPosition });
+
+        if (GuitarTab.state === 'playback') {
+            setTimeout(startPlayback, 0);
+        }
+    }
+
     player.pause = function() {
         if (GuitarTab.state === 'playback') {
             killPlaybackEvents();
@@ -249,7 +249,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
     };
 
     player.play = function() {
-        if (typeof GuitarTab.measureEvents === "undefined") player.calculateMeasureEvents();
+        if (typeof GuitarTab.measureEvents === "undefined") calculateMeasureEvents();
 
         if (GuitarTab.state !== 'playback') {
             startPlayback();
@@ -275,6 +275,10 @@ define(['midi', 'EventEmitter'], function(midi, events) {
 
     GuitarTab.emitter.on('measure', function(e) {
         delete GuitarTab.measureEvents;
+    });
+
+    GuitarTab.emitter.on('loaded', function(e) {
+        calculateMeasureEvents();
     });
 
     return player;
