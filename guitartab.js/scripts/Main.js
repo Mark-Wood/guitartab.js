@@ -7,7 +7,7 @@ requirejs.config({
     }
 });
 
-require(['Renderer', 'PlaybackController', 'Editor', 'EventEmitter'], function(renderer, playbackController, editor, events){
+require(['Renderer', 'Player', 'Editor', 'EventEmitter'], function(renderer, player, editor, events){
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     var onMeasureClick = function(e) {
@@ -15,7 +15,7 @@ require(['Renderer', 'PlaybackController', 'Editor', 'EventEmitter'], function(r
         var xCoordinate = (e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - e.currentTarget.offsetLeft;
         var measureWidth = e.currentTarget.offsetWidth;
 
-        playbackController.setPlaybackPosition(index, xCoordinate, measureWidth);
+        player.setPlaybackPosition(index, xCoordinate, measureWidth);
     };
 
     var onMeasureCellInput = function(e) {
@@ -60,7 +60,7 @@ require(['Renderer', 'PlaybackController', 'Editor', 'EventEmitter'], function(r
             addMeasureContainerEventListeners(document.getElementById('tab-measure-' + measureIndex));
         }
 
-        playbackController.calculateMeasureEvents();
+        player.calculateMeasureEvents();
         editor.setTabEditable(true);
 
         MIDI.loadPlugin({
@@ -68,10 +68,10 @@ require(['Renderer', 'PlaybackController', 'Editor', 'EventEmitter'], function(r
             instrument: "acoustic_grand_piano",
             callback: function() {
                 document.getElementById('play-icon').addEventListener('click', function() {
-                    playbackController.play();
+                    player.play();
                 });
                 document.getElementById('pause-icon').addEventListener('click', function() {
-                    playbackController.pause();
+                    player.pause();
                 });
                 document.getElementById('play-icon').style.visibility = 'visible';
             }

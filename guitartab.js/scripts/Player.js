@@ -8,7 +8,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
     var playbackPosition;
     var timeAtStart;
 
-    var playbackController = {};
+    var player = {};
 
     var startPlayback = function() {
         playbackPosition = playbackPosition || 0;
@@ -134,11 +134,11 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         resetMeasure(measureEvent);
     }
 
-    playbackController.setPlaybackPosition = function(measureIndex, xCoordinate, measureWidth) {
+    player.setPlaybackPosition = function(measureIndex, xCoordinate, measureWidth) {
         if (GuitarTab.state === 'playback') {
             killPlaybackEvents();
         } else {
-            if (typeof GuitarTab.measureEvents === 'undefined') playbackController.calculateMeasureEvents();
+            if (typeof GuitarTab.measureEvents === 'undefined') player.calculateMeasureEvents();
 
             // Clear any existing cursor
             if (typeof playbackPosition !== "undefined") {
@@ -164,7 +164,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         }
     }
 
-    playbackController.calculateMeasureEvents = function() {
+    player.calculateMeasureEvents = function() {
         var stringNoteOffsets = [76, 71, 67, 62, 57, 52];
         GuitarTab.measureEvents = [];
         var tab = GuitarTab.tab;
@@ -231,7 +231,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         }
     };
 
-    playbackController.pause = function() {
+    player.pause = function() {
         if (GuitarTab.state === 'playback') {
             killPlaybackEvents();
 
@@ -248,8 +248,8 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         }
     };
 
-    playbackController.play = function() {
-        if (typeof GuitarTab.measureEvents === "undefined") playbackController.calculateMeasureEvents();
+    player.play = function() {
+        if (typeof GuitarTab.measureEvents === "undefined") player.calculateMeasureEvents();
 
         if (GuitarTab.state !== 'playback') {
             startPlayback();
@@ -277,5 +277,5 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         delete GuitarTab.measureEvents;
     });
 
-    return playbackController;
+    return player;
 });
