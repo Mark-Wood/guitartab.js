@@ -33,5 +33,19 @@ define(['Player', 'EventEmitter'], function(player, events) {
         document.getElementById('play-icon').style.visibility = 'visible';
     });
 
+    GuitarTab.emitter.on('playbackState', function(e) {
+        if (e.playing) {
+            document.getElementById('play-icon').style.visibility = 'hidden';
+            document.getElementById('pause-icon').style.visibility = 'visible';
+        } else {
+            document.getElementById('play-icon').style.visibility = 'visible';
+            document.getElementById('pause-icon').style.visibility = 'hidden';
+        }
+    });
+
+    GuitarTab.emitter.on('playbackPosition', function(e) {
+        // scroll to measure container
+    });
+
     return playerController;
 });

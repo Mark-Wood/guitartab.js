@@ -74,7 +74,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         if (index === GuitarTab.tab.lengthInMeasures) {
             stopCurrentInterval();
             playbackPosition = 0;
-            GuitarTab.state = null;
+            GuitarTab.state = '';
             GuitarTab.emitter.emit('playbackState', { playing: false });
             return;
         }
@@ -243,7 +243,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
             measureEvent.cursor.style.left = ((playbackPosition - measureEvent.offset) * 100 / measureEvent.measureLength) + '%';
             measureEvent.cursor.style.borderRightWidth = '1px';
 
-            GuitarTab.state = null;
+            GuitarTab.state = '';
             GuitarTab.emitter.emit('playbackState', { playing: false });
         }
     };
@@ -258,20 +258,6 @@ define(['midi', 'EventEmitter'], function(midi, events) {
             GuitarTab.emitter.emit('playbackState', { playing: true });
         }
     };
-
-    GuitarTab.emitter.on('playbackState', function(e) {
-        if (e.playing) {
-            document.getElementById('play-icon').style.visibility = 'hidden';
-            document.getElementById('pause-icon').style.visibility = 'visible';
-        } else {
-            document.getElementById('play-icon').style.visibility = 'visible';
-            document.getElementById('pause-icon').style.visibility = 'hidden';
-        }
-    });
-
-    GuitarTab.emitter.on('playbackPosition', function(e) {
-        // scroll to measure container
-    });
 
     GuitarTab.emitter.on('measure', function(e) {
         delete GuitarTab.measureEvents;
