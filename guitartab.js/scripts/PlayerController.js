@@ -33,8 +33,8 @@ define(['Player', 'EventEmitter'], function(player, events) {
         document.getElementById('play-icon').style.visibility = 'visible';
     });
 
-    GuitarTab.emitter.on('playbackState', function(e) {
-        if (e.playing) {
+    GuitarTab.emitter.on('state', function(e) {
+        if (GuitarTab.state === 'playback') {
             document.getElementById('play-icon').style.visibility = 'hidden';
             document.getElementById('pause-icon').style.visibility = 'visible';
         } else {

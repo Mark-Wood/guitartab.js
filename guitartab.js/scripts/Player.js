@@ -75,7 +75,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
             stopCurrentInterval();
             playbackPosition = 0;
             GuitarTab.state = '';
-            GuitarTab.emitter.emit('playbackState', { playing: false });
+            GuitarTab.emitter.emit('state');
             return;
         }
 
@@ -244,7 +244,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
             measureEvent.cursor.style.borderRightWidth = '1px';
 
             GuitarTab.state = '';
-            GuitarTab.emitter.emit('playbackState', { playing: false });
+            GuitarTab.emitter.emit('state');
         }
     };
 
@@ -255,7 +255,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
             startPlayback();
 
             GuitarTab.state = 'playback';
-            GuitarTab.emitter.emit('playbackState', { playing: true });
+            GuitarTab.emitter.emit('state');
         }
     };
 
