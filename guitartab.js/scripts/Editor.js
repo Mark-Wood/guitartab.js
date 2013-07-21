@@ -19,24 +19,5 @@ define(['EventEmitter'], function(events) {
         GuitarTab.emitter.emit('measure', { event: 'updated', index: measureIndex });
     };
 
-    editor.setTabEditable = function(value) {
-        for (var i = 0; i < GuitarTab.tab.lengthInMeasures; i++) {
-            var measureContainer = document.getElementById('tab-measure-' + i);
-            var spans = measureContainer.getElementsByTagName('span');
-
-            for (var j = 0; j < spans.length; j++) {
-                spans[j].contentEditable = value;
-            }
-        }
-    };
-
-    GuitarTab.emitter.on('playbackState', function(e) {
-        editor.setTabEditable(!e.playing);
-    });
-
-    GuitarTab.emitter.on('loaded', function(e) {
-        editor.setTabEditable(true);
-    });
-
     return editor;
 });

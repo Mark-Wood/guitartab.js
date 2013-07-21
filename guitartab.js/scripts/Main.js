@@ -11,6 +11,8 @@ require(['Renderer', 'PlayerController', 'EditorController', 'EventEmitter'], fu
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     if (typeof GuitarTab.tab !== 'undefined') {
+        GuitarTab.state = '';
+
         document.getElementById('tab-title').appendChild(document.createTextNode(GuitarTab.tab.title));
         document.getElementById('tab-artist').appendChild(document.createTextNode(GuitarTab.tab.artist));
 
@@ -18,6 +20,7 @@ require(['Renderer', 'PlayerController', 'EditorController', 'EventEmitter'], fu
 
         // Convert to HTML and attach to the DOM
         renderer.renderTab(GuitarTab.tab, drawingCanvas);
+        editorController.addEditorPanelEventHandlers();
 
         for (var measureIndex = 0; measureIndex < GuitarTab.tab.lengthInMeasures; measureIndex++) {
             var measureContainer = document.getElementById('tab-measure-' + measureIndex);
