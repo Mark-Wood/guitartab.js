@@ -10,13 +10,20 @@ define(['EventEmitter'], function(events) {
     var editor = {};
 
     editor.setNote = function (measureIndex, row, column, value) {
+        console.log('Index: '+measureIndex+', Row: '+row+', Col: '+column+', Val: '+value);
         if (typeof value === 'number' || value.match(/^\d+$/)) {
             GuitarTab.tab.parts[0].measures[measureIndex].noteColumns[column].notes[row] = parseInt(value);
         } else {
             delete GuitarTab.tab.parts[0].measures[measureIndex].noteColumns[column].notes[row];
         }
 
-        GuitarTab.emitter.emit('measure', { event: 'updated', index: measureIndex });
+        GuitarTab.emitter.emit('note', {
+            event: 'updated',
+            type: 'value',
+            measureIndex: measureIndex,
+            rowIndex: row,
+            colIndex: column
+        });
     };
 
     return editor;

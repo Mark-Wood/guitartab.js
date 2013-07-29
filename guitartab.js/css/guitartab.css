@@ -74,16 +74,16 @@ body {
 }
 
 #drawing-canvas table {
-    /*float: left;*/
     display: block;
     height: auto;
-    font-family: courier;
-    font-size: 1em;
+    font-family: Courier;
+    font-size: 11pt;
+    line-height: 1em;
     -moz-box-sizing: border-box;
     border-spacing: 0;
-    border-collapse: collapse;
     border-right: 1px solid #a0a0a0;
 }
+
 #drawing-canvas tr {
     display: block;
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAABCAYAAADXeS5fAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAAVSURBVBhXY1yyZMn/P3/+MJAHGBgAZKQF4Sb2AzwAAAAASUVORK5CYII=) repeat-x center;
@@ -97,20 +97,19 @@ body {
 }
 
 #drawing-canvas td {
-    height: 1.2em;
+    height: 1em;
     padding: 0;
     margin: 0;
     text-align: left;
+    border: 1px solid transparent;
 }
 
 #drawing-canvas span {
     background-color: whitesmoke;
+    letter-spacing: -0.1em;
+    display: inline-block;
 }
 
-.selected {
-    background-color: #e0f0ff;
-}
-
-.selected span {
-    background-color: #e0f0ff !important;
+#drawing-canvas td.selected {
+    border: 1px solid red;
 }

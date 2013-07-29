@@ -3,46 +3,32 @@ if (typeof GuitarTab === "undefined") var GuitarTab = {};
 define(['Editor', 'EventEmitter'], function(editor, events) {
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
+    var noteEditingSession = false;
     var editorController = {};
 
-    var onMeasureCellInput = function(e) {
-        var span = $(e.target);
-        var measureIndex = parseInt(span.closest('.tab-measure').attr('id').match(/\d+$/));
-        var row = span.closest('tr')[0].sectionRowIndex;
-        var col = span.closest('td')[0].cellIndex;
+    var setSelectedCell = function(target) {
+        if (GuitarTab.focusedCell) GuitarTab.focusedCell.classList.remove('selected');
+        GuitarTab.focusedCell = target;
 
-        editor.setNote(measureIndex, row, col, e.target.innerText);
-    };
+        if (target) {
+            GuitarTab.focusedCell.classList.add('selected');
+
+            noteEditingSession = false;
+        }
+    }
 
     var onMeasureCellClick = function(e) {
-        e.currentTarget.getElementsByTagName('span')[0].focus();
-    };
-
-    var setMeasureEditable = function(measureIndex, value) {
-        var measureContainer = document.getElementById('tab-measure-' + measureIndex);
-        var spans = measureContainer.getElementsByTagName('span');
-
-        for (var j = 0; j < spans.length; j++) {
-            spans[j].contentEditable = value;
+        if (GuitarTab.state === 'edit') {
+            setSelectedCell(e.currentTarget);
         }
     };
 
     var onEditPanelTabClick = function(e) {
         if (GuitarTab.state === 'edit') {
             document.getElementById('editor-panel').classList.remove('edit');
-
-            for (var i = 0; i < GuitarTab.tab.lengthInMeasures; i++) {
-                setMeasureEditable(i, false);
-            }
-
             GuitarTab.state = '';
         } else if (GuitarTab.state === '') {
             document.getElementById('editor-panel').classList.add('edit');
-
-            for (var i = 0; i < GuitarTab.tab.lengthInMeasures; i++) {
-                setMeasureEditable(i, true);
-            }
-
             GuitarTab.state = 'edit';
         }
 
@@ -52,7 +38,6 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
     editorController.addMeasureContainerEventListeners = function(measureContainer) {
         var measureCells = measureContainer.getElementsByTagName('td');
         for (var i = 0; i < measureCells.length; i++) {
-            measureCells[i].firstChild.addEventListener('input', onMeasureCellInput);
             measureCells[i].addEventListener('click', onMeasureCellClick);
         }
     };
@@ -64,10 +49,49 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
     GuitarTab.emitter.on('measure', function(e) {
         if (e.event == 'added') {
             editorController.addMeasureContainerEventListeners(document.getElementById('tab-measure-' + e.index));
+        }
+    });
 
-            if (GuitarTab.state === 'edit') {
-                setMeasureEditable(e.index, true);
+    GuitarTab.emitter.on('state', function(e) {
+        if (GuitarTab.state !== 'edit') {
+            setSelectedCell(null);
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        var setNote = function(span, value) {
+            var measureIndex = parseInt(span.closest('.tab-measure').attr('id').match(/\d+$/));
+            var row = span.closest('tr').prevAll().length;
+            var col = span.closest('td').prevAll().length;
+
+            editor.setNote(measureIndex, row, col, value);
+        };
+
+        if (GuitarTab.focusedCell) {
+            var keyCode = e.which || e.keyCode;
+            if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+                // If a numeric char
+                if (keyCode >= 48 && keyCode < 58) {
+                    var char = String.fromCharCode(e.which || e.keyCode);
+                    var span = $(GuitarTab.focusedCell.getElementsByTagName('span')[0]);
+
+                    var newValue;
+                    if (noteEditingSession) {
+                        newValue = span.text() + char;
+                    } else {
+                        newValue = char;
+                    }
+
+                    setNote(span, newValue);
+
+                    noteEditingSession = true;
+                } else if (keyCode == 46) {
+                    var span = $(GuitarTab.focusedCell.getElementsByTagName('span')[0]);
+
+                    setNote(span, '');
+                }
             }
+            console.log(keyCode);
         }
     });
 

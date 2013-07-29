@@ -263,6 +263,10 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         delete GuitarTab.measureEvents;
     });
 
+    GuitarTab.emitter.on('note', function(e) {
+        delete GuitarTab.measureEvents;
+    });
+
     GuitarTab.emitter.on('loaded', function(e) {
         calculateMeasureEvents();
     });

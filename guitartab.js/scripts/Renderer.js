@@ -12,7 +12,7 @@ define(['EventEmitter'], function(events) {
     var renderer = {};
 
     var calculateMeasureColumnWidths = function(measureIndex) {
-        var digitWidth = 0.65;
+        var digitWidth = 0.6;
         var sixtyFourthNoteWidth = digitWidth / 4;
         var measureContainer = document.getElementById('tab-measure-' + measureIndex);
 
@@ -73,8 +73,9 @@ define(['EventEmitter'], function(events) {
                 var measureNote = document.createElement('td');
                 var measureNoteSpan = document.createElement('span');
 
-                if (typeof measure.noteColumns[colIndex].notes[stringIndex] !== "undefined") {
-                    measureNoteSpan.appendChild(document.createTextNode(measure.noteColumns[colIndex].notes[stringIndex]));
+                var noteValue = measure.noteColumns[colIndex].notes[stringIndex];
+                if (typeof noteValue !== "undefined") {
+                    measureNoteSpan.appendChild(document.createTextNode(noteValue));
                 }
 
                 measureNote.appendChild(measureNoteSpan);
@@ -130,6 +131,25 @@ define(['EventEmitter'], function(events) {
             for (var i = e.index + 1; i < GuitarTab.tab.lengthInMeasures; i++) {
                 document.getElementById('tab-measure-' + i).id = 'tab-measure-' + (i - 1);
             }
+        }
+    });
+
+    GuitarTab.emitter.on('note', function(e) {
+        if (e.event === 'updated') {
+            if (e.type === 'value') {
+                var noteValue = GuitarTab.tab.parts[0].measures[e.measureIndex].noteColumns[e.colIndex].notes[e.rowIndex];
+
+                $('#tab-measure-' + e.measureIndex)
+                    .find('tr:eq(' + e.rowIndex + ')')
+                    .find('td:eq(' + e.colIndex + ')')
+                    .find('span').text(typeof noteValue !== 'undefined' ? noteValue : '');
+            }
+
+            calculateMeasureColumnWidths(e.measureIndex);
+        } else if (e.event === 'created') {
+            calculateMeasureColumnWidths(e.measureIndex);
+        } else if (e.event === 'deleted') {
+            calculateMeasureColumnWidths(e.measureIndex);
         }
     });
 
