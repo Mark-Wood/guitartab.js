@@ -26,5 +26,18 @@ define(['EventEmitter'], function(events) {
         });
     };
 
+    editor.setNoteLength = function(measureIndex, column, value) {
+        if (typeof value === 'number' || value.match(/^\d+$/)) {
+            GuitarTab.tab.parts[0].measures[measureIndex].noteColumns[column].duration = parseInt(value);
+        }
+
+        GuitarTab.emitter.emit('note', {
+            event: 'updated',
+            type: 'length',
+            measureIndex: measureIndex,
+            colIndex: column
+        });
+    };
+
     return editor;
 });

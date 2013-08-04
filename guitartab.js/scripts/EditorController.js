@@ -6,6 +6,16 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
     var noteEditingSession = false;
     var editorController = {};
 
+    var getNoteIndices = function(noteElement) {
+        var jqueryNoteElement = $(noteElement);
+
+        return {
+            measure: parseInt(jqueryNoteElement.closest('.tab-measure').attr('id').match(/\d+$/)),
+            row: jqueryNoteElement.closest('tr').prevAll().length,
+            column: jqueryNoteElement.closest('td').prevAll().length
+        };
+    };
+
     var setSelectedCell = function(target) {
         if (GuitarTab.focusedCell) GuitarTab.focusedCell.classList.remove('selected');
         GuitarTab.focusedCell = target;
@@ -14,8 +24,14 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
             GuitarTab.focusedCell.classList.add('selected');
 
             noteEditingSession = false;
+            var indices = getNoteIndices(target);
+            var noteLength = GuitarTab.tab.parts[0].measures[indices.measure].noteColumns[indices.column].duration;
+            $('#editor-panel input[name="note-length"]').prop('disabled', false);
+            document.getElementById('note-length-' + noteLength).checked = true;
+        } else {
+            $('#editor-panel input[name="note-length"]').prop({ disabled: true, checked: false });
         }
-    }
+    };
 
     var onMeasureCellClick = function(e) {
         if (GuitarTab.state === 'edit') {
@@ -26,14 +42,23 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
     var onEditPanelTabClick = function(e) {
         if (GuitarTab.state === 'edit') {
             document.getElementById('editor-panel').classList.remove('edit');
+            document.getElementById('editor-panel-content').classList.remove('edit');
             GuitarTab.state = '';
         } else if (GuitarTab.state === '') {
             document.getElementById('editor-panel').classList.add('edit');
+            document.getElementById('editor-panel-content').classList.add('edit');
             GuitarTab.state = 'edit';
         }
 
         GuitarTab.emitter.emit('state');
-    }
+    };
+
+    var onEditPanelInputClick = function(e) {
+        if (e.currentTarget.name === 'note-length') {
+            var indices = getNoteIndices(GuitarTab.focusedCell);
+            editor.setNoteLength(indices.measure, indices.column, e.currentTarget.value);
+        }
+    };
 
     editorController.addMeasureContainerEventListeners = function(measureContainer) {
         var measureCells = measureContainer.getElementsByTagName('td');
@@ -44,6 +69,7 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
 
     editorController.addEditorPanelEventHandlers = function() {
         document.getElementById('editor-panel-tab').addEventListener('click', onEditPanelTabClick);
+        $('#editor-panel input').click(onEditPanelInputClick);
     };
 
     GuitarTab.emitter.on('measure', function(e) {
@@ -59,13 +85,7 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
     });
 
     document.addEventListener('keydown', function(e) {
-        var setNote = function(span, value) {
-            var measureIndex = parseInt(span.closest('.tab-measure').attr('id').match(/\d+$/));
-            var row = span.closest('tr').prevAll().length;
-            var col = span.closest('td').prevAll().length;
 
-            editor.setNote(measureIndex, row, col, value);
-        };
 
         if (GuitarTab.focusedCell) {
             var keyCode = e.which || e.keyCode;
@@ -73,22 +93,20 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
                 // If a numeric char
                 if (keyCode >= 48 && keyCode < 58) {
                     var char = String.fromCharCode(e.which || e.keyCode);
-                    var span = $(GuitarTab.focusedCell.getElementsByTagName('span')[0]);
-
                     var newValue;
+
                     if (noteEditingSession) {
-                        newValue = span.text() + char;
+                        newValue = GuitarTab.focusedCell.getElementsByTagName('span')[0].innerText + char;
                     } else {
                         newValue = char;
                     }
 
-                    setNote(span, newValue);
-
+                    var indices = getNoteIndices(GuitarTab.focusedCell);
+                    editor.setNote(indices.measure, indices.row, indices.column, newValue);
                     noteEditingSession = true;
                 } else if (keyCode == 46) {
-                    var span = $(GuitarTab.focusedCell.getElementsByTagName('span')[0]);
-
-                    setNote(span, '');
+                    var indices = getNoteIndices(GuitarTab.focusedCell);
+                    editor.setNote(indices.measure, indices.row, indices.column, '');
                 }
             }
             console.log(keyCode);

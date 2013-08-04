@@ -9,14 +9,26 @@
 </head>
 <body>
     <div id="editor-panel">
-        <div id="editor-panel-tab">
-            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="20" width="20" viewBox="0 0 20 20">
-                <g id="editor-panel-tab-icon">
-                    <rect x="0" y="0" width="20" height="20" style="fill:transparent;"/>
-                    <polygon points="5,0 5,20 15,10" style="fill:white;"/>
-                </g>
-            </svg>
+        <div id="editor-panel-content">
+            <h3>Note</h3>
+            <h4>Length</h4>
+            <input name="note-length" value="64" id="note-length-64" type="radio" /><label for="note-length-64">1/1</label>
+            <input name="note-length" value="32" id="note-length-32" type="radio" /><label for="note-length-32">1/2</label>
+            <input name="note-length" value="16" id="note-length-16" type="radio" /><label for="note-length-16">1/4</label>
+            <input name="note-length" value="8" id="note-length-8" type="radio" /><label for="note-length-8">1/8</label>
+            <input name="note-length" value="4" id="note-length-4" type="radio" /><label for="note-length-4">1/16</label>
+            <input name="note-length" value="2" id="note-length-2" type="radio" /><label for="note-length-2">1/32</label>
+            <input name="note-length" value="1" id="note-length-1" type="radio" /><label for="note-length-1">1/64</label>
         </div>
+    </div>
+
+    <div id="editor-panel-tab">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="20" width="20" viewBox="0 0 20 20">
+            <g id="editor-panel-tab-icon">
+                <rect x="0" y="0" width="20" height="20" style="fill:transparent;"/>
+                <polygon points="5,0 5,20 15,10" style="fill:white;"/>
+            </g>
+        </svg>
     </div>
     <div id="content">
         <div id="drawing-canvas">

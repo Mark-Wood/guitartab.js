@@ -2,7 +2,7 @@ body {
     background-color: black;
     padding: 0;
     margin: 0;
-    min-width: 80em;
+    min-width: 78em;
 }
 
 #content {
@@ -20,21 +20,39 @@ body {
 #editor-panel {
     position: relative;
     float: left;
+    overflow: hidden;
     background-color: gray;
+    color: white;
     width: 0%;
-    height: 100px;
     transition-timing-function: linear;
     transition-property: width;
     transition-duration: 0.5s;
 }
 
+#editor-panel-content {
+    opacity: 0;
+    transition-timing-function: linear;
+    transition-property: opacity;
+    transition-delay: 0.6s;
+    transition-duration: 0.5s;
+}
+
+#editor-panel h2, h3, h4 {
+    text-decoration: underline;
+}
+
 #editor-panel.edit {
-    width: 20em;
+    width: 15em;
+}
+
+#editor-panel-content.edit {
+    opacity: 1;
 }
 
 #editor-panel-tab {
-    position: absolute;
-    left: 100%;
+    /*position: absolute;
+    left: 100%;*/
+    float:left;
     background-color: gray;
 }
 
