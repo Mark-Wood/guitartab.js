@@ -11,7 +11,7 @@ require(['Renderer', 'PlayerController', 'EditorController', 'EventEmitter'], fu
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     if (typeof GuitarTab.tab !== 'undefined') {
-        GuitarTab.state = '';
+        GuitarTab.state = { playback: false, edit: false };
 
         document.getElementById('tab-title').appendChild(document.createTextNode(GuitarTab.tab.title));
         document.getElementById('tab-artist').appendChild(document.createTextNode(GuitarTab.tab.artist));

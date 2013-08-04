@@ -68,13 +68,13 @@ define(['midi', 'EventEmitter'], function(midi, events) {
     }
 
     var playMeasure = function(index) {
-        if (GuitarTab.state !== 'playback') return;
+        if (!GuitarTab.state.playback) return;
 
         // If we've reached the end
         if (index === GuitarTab.tab.lengthInMeasures) {
             stopCurrentInterval();
             playbackPosition = 0;
-            GuitarTab.state = '';
+            GuitarTab.state.playback = false;
             GuitarTab.emitter.emit('state');
             return;
         }
@@ -202,7 +202,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
     };
 
     player.setPlaybackPosition = function(measureIndex, xCoordinate, measureWidth) {
-        if (GuitarTab.state === 'playback') {
+        if (GuitarTab.state.playback) {
             killPlaybackEvents();
         } else {
             if (typeof GuitarTab.measureEvents === 'undefined') calculateMeasureEvents();
@@ -226,13 +226,13 @@ define(['midi', 'EventEmitter'], function(midi, events) {
 
         GuitarTab.emitter.emit('playbackPosition', { playbackPosition: playbackPosition });
 
-        if (GuitarTab.state === 'playback') {
+        if (GuitarTab.state.playback) {
             setTimeout(startPlayback, 0);
         }
     }
 
     player.pause = function() {
-        if (GuitarTab.state === 'playback') {
+        if (GuitarTab.state.playback) {
             killPlaybackEvents();
 
             playbackPosition = new Date().getTime() - timeAtStart;
@@ -243,7 +243,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
             measureEvent.cursor.style.left = ((playbackPosition - measureEvent.offset) * 100 / measureEvent.measureLength) + '%';
             measureEvent.cursor.style.borderRightWidth = '1px';
 
-            GuitarTab.state = '';
+            GuitarTab.state.playback = false;
             GuitarTab.emitter.emit('state');
         }
     };
@@ -251,10 +251,10 @@ define(['midi', 'EventEmitter'], function(midi, events) {
     player.play = function() {
         if (typeof GuitarTab.measureEvents === "undefined") calculateMeasureEvents();
 
-        if (GuitarTab.state !== 'playback') {
+        if (!GuitarTab.state.playback) {
             startPlayback();
 
-            GuitarTab.state = 'playback';
+            GuitarTab.state.playback = true;
             GuitarTab.emitter.emit('state');
         }
     };

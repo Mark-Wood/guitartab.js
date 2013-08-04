@@ -34,7 +34,7 @@ define(['Player', 'EventEmitter'], function(player, events) {
     });
 
     GuitarTab.emitter.on('state', function(e) {
-        if (GuitarTab.state === 'playback') {
+        if (GuitarTab.state.playback) {
             document.getElementById('play-icon').style.visibility = 'hidden';
             document.getElementById('pause-icon').style.visibility = 'visible';
         } else {

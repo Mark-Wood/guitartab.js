@@ -34,20 +34,20 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
     };
 
     var onMeasureCellClick = function(e) {
-        if (GuitarTab.state === 'edit') {
+        if (GuitarTab.state.edit && !GuitarTab.state.playback) {
             setSelectedCell(e.currentTarget);
         }
     };
 
     var onEditPanelTabClick = function(e) {
-        if (GuitarTab.state === 'edit') {
+        if (GuitarTab.state.edit) {
             document.getElementById('editor-panel').classList.remove('edit');
             document.getElementById('editor-panel-content').classList.remove('edit');
-            GuitarTab.state = '';
-        } else if (GuitarTab.state === '') {
+            GuitarTab.state.edit = false;
+        } else {
             document.getElementById('editor-panel').classList.add('edit');
             document.getElementById('editor-panel-content').classList.add('edit');
-            GuitarTab.state = 'edit';
+            GuitarTab.state.edit = true;
         }
 
         GuitarTab.emitter.emit('state');
@@ -79,14 +79,12 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
     });
 
     GuitarTab.emitter.on('state', function(e) {
-        if (GuitarTab.state !== 'edit') {
+        if (GuitarTab.state.playback || !GuitarTab.state.edit) {
             setSelectedCell(null);
         }
     });
 
     document.addEventListener('keydown', function(e) {
-
-
         if (GuitarTab.focusedCell) {
             var keyCode = e.which || e.keyCode;
             if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
