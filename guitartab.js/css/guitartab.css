@@ -23,17 +23,19 @@ body {
     overflow: hidden;
     background-color: gray;
     color: white;
-    width: 0%;
+    width: 0;
     transition-timing-function: linear;
     transition-property: width;
+    transition-delay: 0.3s;
     transition-duration: 0.5s;
 }
 
 #editor-panel-content {
+    width: 15em;
     opacity: 0;
     transition-timing-function: linear;
     transition-property: opacity;
-    transition-delay: 0.6s;
+    transition-delay: 0s;
     transition-duration: 0.5s;
 }
 
@@ -43,15 +45,15 @@ body {
 
 #editor-panel.edit {
     width: 15em;
+    transition-delay: 0s;
 }
 
 #editor-panel-content.edit {
     opacity: 1;
+    transition-delay: 0.3s;
 }
 
 #editor-panel-tab {
-    /*position: absolute;
-    left: 100%;*/
     float:left;
     background-color: gray;
 }
@@ -130,4 +132,5 @@ body {
 
 #drawing-canvas td.selected {
     border: 1px solid red;
+    background: white;
 }
