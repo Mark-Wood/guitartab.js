@@ -32,7 +32,22 @@ require(['Renderer', 'PlayerController', 'EditorController', 'EventEmitter'], fu
             soundfontUrl: "./soundfont/",
             instrument: "acoustic_grand_piano",
             callback: function() {
-                GuitarTab.emitter.emit('loaded');
+                var audioContextInteraction = false;
+
+                (function checkAudioContextReady() {
+                    if (MIDI.Player.ctx.currentTime > 0) {
+                        GuitarTab.emitter.emit('loaded');
+                    }
+                    else {
+                        if (!audioContextInteraction &&
+                            typeof MIDI.Player.ctx !== "undefined") {
+                            MIDI.Player.ctx.createGain();
+                            audioContextInteraction = true;
+                        }
+
+                        setTimeout(checkAudioContextReady, 100);
+                    }
+                })();
             }
         });
     }
