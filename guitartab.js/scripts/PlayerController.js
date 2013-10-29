@@ -6,11 +6,14 @@ define(['Player', 'EventEmitter'], function(player, events) {
     var playerController = {};
 
     var onMeasureClick = function(e) {
-        var index = parseInt(e.currentTarget.id.match(/\d+$/));
-        var xCoordinate = (e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - e.currentTarget.offsetLeft;
-        var measureWidth = e.currentTarget.offsetWidth;
+        // Only skip to a position if already playing or not editing
+        if (GuitarTab.state.playback || !GuitarTab.state.edit) {
+            var index = parseInt(e.currentTarget.id.match(/\d+$/));
+            var xCoordinate = (e.pageX || (e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft)) - e.currentTarget.offsetLeft;
+            var measureWidth = e.currentTarget.offsetWidth;
 
-        player.setPlaybackPosition(index, xCoordinate, measureWidth);
+            player.setPlaybackPosition(index, xCoordinate, measureWidth);
+        }
     };
 
     playerController.addMeasureContainerEventListeners = function(measureContainer) {
@@ -34,13 +37,8 @@ define(['Player', 'EventEmitter'], function(player, events) {
     });
 
     GuitarTab.emitter.on('state', function(e) {
-        if (GuitarTab.state.playback) {
-            document.getElementById('play-icon').style.visibility = 'hidden';
-            document.getElementById('pause-icon').style.visibility = 'visible';
-        } else {
-            document.getElementById('play-icon').style.visibility = 'visible';
-            document.getElementById('pause-icon').style.visibility = 'hidden';
-        }
+        document.getElementById('play-icon').style.visibility = GuitarTab.state.playback ? 'hidden' : 'visible';
+        document.getElementById('pause-icon').style.visibility = GuitarTab.state.playback ? 'visible' : 'hidden';
     });
 
     GuitarTab.emitter.on('playbackPosition', function(e) {

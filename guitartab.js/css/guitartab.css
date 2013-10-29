@@ -88,11 +88,6 @@ body {
     transition-property: left;
 }
 
-.active {
-    border-right: 1px solid black;
-    left: 100%;
-}
-
 #drawing-canvas table {
     display: block;
     height: auto;
