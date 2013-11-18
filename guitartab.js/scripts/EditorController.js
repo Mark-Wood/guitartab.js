@@ -1,12 +1,12 @@
 if (typeof GuitarTab === "undefined") var GuitarTab = {};
 
-define(['Editor', 'EventEmitter'], function(editor, events) {
+define(['Editor', 'EventEmitter'], function (editor, events) {
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     var noteEditingSession = false;
     var editorController = {};
 
-    var getNoteIndices = function(noteElement) {
+    function getNoteIndices(noteElement) {
         var jqueryNoteElement = $(noteElement);
 
         return {
@@ -14,9 +14,9 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
             row: jqueryNoteElement.closest('tr').prevAll().length,
             column: jqueryNoteElement.closest('td').prevAll().length
         };
-    };
+    }
 
-    var setSelectedCell = function(target) {
+    function setSelectedCell(target) {
         if (GuitarTab.focusedCell) GuitarTab.focusedCell.classList.remove('selected');
         GuitarTab.focusedCell = target;
 
@@ -31,15 +31,15 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
         } else {
             $('#editor-panel input[name="note-length"]').prop({ disabled: true, checked: false });
         }
-    };
+    }
 
-    var onMeasureCellClick = function(e) {
+    function onMeasureCellClick(e) {
         if (GuitarTab.state.edit && !GuitarTab.state.playback) {
             setSelectedCell(e.currentTarget);
         }
-    };
+    }
 
-    var onEditPanelTabClick = function(e) {
+    function onEditPanelTabClick(e) {
         if (GuitarTab.state.edit) {
             document.getElementById('editor-panel').classList.remove('edit');
             document.getElementById('editor-panel-content').classList.remove('edit');
@@ -51,40 +51,40 @@ define(['Editor', 'EventEmitter'], function(editor, events) {
         }
 
         GuitarTab.emitter.emit('state');
-    };
+    }
 
-    var onEditPanelInputClick = function(e) {
+    function onEditPanelInputClick(e) {
         if (e.currentTarget.name === 'note-length') {
             var indices = getNoteIndices(GuitarTab.focusedCell);
             editor.setNoteLength(indices.measure, indices.column, e.currentTarget.value);
         }
     };
 
-    editorController.addMeasureContainerEventListeners = function(measureContainer) {
+    editorController.addMeasureContainerEventListeners = function addMeasureContainerEventListeners(measureContainer) {
         var measureCells = measureContainer.getElementsByTagName('td');
         for (var i = 0; i < measureCells.length; i++) {
             measureCells[i].addEventListener('click', onMeasureCellClick);
         }
     };
 
-    editorController.addEditorPanelEventHandlers = function() {
+    editorController.addEditorPanelEventHandlers = function addEditorPanelEventHandlers() {
         document.getElementById('editor-panel-tab').addEventListener('click', onEditPanelTabClick);
         $('#editor-panel input').click(onEditPanelInputClick);
     };
 
-    GuitarTab.emitter.on('measure', function(e) {
+    GuitarTab.emitter.on('measure', function onMeasureEvent(e) {
         if (e.event == 'added') {
             editorController.addMeasureContainerEventListeners(document.getElementById('tab-measure-' + e.index));
         }
     });
 
-    GuitarTab.emitter.on('state', function(e) {
+    GuitarTab.emitter.on('state', function onStateEvent(e) {
         if (GuitarTab.state.playback || !GuitarTab.state.edit) {
             setSelectedCell(null);
         }
     });
 
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function onKeydownEvent(e) {
         if (GuitarTab.focusedCell) {
             var keyCode = e.which || e.keyCode;
             if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {

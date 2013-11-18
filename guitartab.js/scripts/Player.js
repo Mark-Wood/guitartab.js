@@ -1,6 +1,6 @@
 if (typeof GuitarTab === "undefined") var GuitarTab = {};
 
-define(['midi', 'EventEmitter'], function(midi, events) {
+define(['midi', 'EventEmitter'], function (midi, events) {
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -21,18 +21,18 @@ define(['midi', 'EventEmitter'], function(midi, events) {
     var player = {};
 
     // First, let's shim the requestAnimationFrame API, with a setTimeout fallback
-    window.requestAnimFrame = (function(){
+    window.requestAnimFrame = (function (){
         return window.requestAnimationFrame ||
             window.webkitRequestAnimationFrame ||
             window.mozRequestAnimationFrame ||
             window.oRequestAnimationFrame ||
             window.msRequestAnimationFrame ||
-            function( callback ){
+            function (callback) {
                 window.setTimeout(callback, 1000 / 60);
             };
     })();
 
-    var moveCursor = function(cursor, toPos, fromPos, duration) {
+    function moveCursor(cursor, toPos, fromPos, duration) {
         cursor.style.borderRightWidth = '1px';
         cursor.style.transitionDuration = '';
 
@@ -41,18 +41,18 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         } else {
             cursor.style.left = fromPos;
 
-            setTimeout(function(){
+            setTimeout(function (){
                 cursor.style.transitionDuration = duration;
                 cursor.style.left = toPos;
             }, 0);
         }
     }
 
-    var hideCursor = function(cursor) {
+    function hideCursor(cursor) {
         cursor.style.borderRightWidth = '0px';
     }
 
-    var draw = function() {
+    function draw() {
         var currentElapsed = audioContext.currentTime + playbackPosition - timeAtStart;
 
         if (measureBoundaries[measureBoundaries.length - 1].offset + measureBoundaries[measureBoundaries.length - 1].duration < currentElapsed) {
@@ -64,7 +64,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         if (currentlyAnimatingMeasure &&
             (currentlyAnimatingMeasure.offset + currentlyAnimatingMeasure.duration < currentElapsed ||
              currentlyAnimatingMeasure.offset > currentElapsed)) {
-            console.log('Measure '+ (nextMeasureIndex - 1) +' End @ ' + audioContext.currentTime)
+            console.log('Measure '+ (nextMeasureIndex - 1) +' End @ ' + audioContext.currentTime);
             hideCursor(currentlyAnimatingMeasure.cursor);
         }
 
@@ -87,14 +87,14 @@ define(['midi', 'EventEmitter'], function(midi, events) {
             // Set up to draw again if still playing
             requestAnimFrame(draw);
         }
-    };
+    }
 
-    var scheduleSoundEvent = function(soundEvent) {
+    function scheduleSoundEvent(soundEvent) {
         MIDI.noteOn(0, soundEvent.note, 63, timeAtStart + soundEvent.offset - playbackPosition);
         MIDI.noteOff(0, soundEvent.note, timeAtStart + soundEvent.offset + soundEvent.duration - playbackPosition);
-    };
+    }
 
-    var schedule = function() {
+    function schedule() {
         while (GuitarTab.state.playback &&
                nextSoundIndex < soundEvents.length &&
                soundEvents[nextSoundIndex].offset < ((audioContext.currentTime + playbackPosition - timeAtStart) + 0.1) ) {
@@ -103,9 +103,9 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         }
 
         if (GuitarTab.state.playback) timerId = window.setTimeout(schedule, 50);
-    };
+    }
 
-    var calculatePlayerEvents = function() {
+    function calculatePlayerEvents() {
         var stringNoteOffsets = [76, 71, 67, 62, 57, 52];
         soundEvents = [];
         measureBoundaries = [];
@@ -155,10 +155,10 @@ define(['midi', 'EventEmitter'], function(midi, events) {
             measureOffset += measureDuration;
         }
 
-        soundEvents.sort(function(a, b){return a.offset - b.offset});
-    };
+        soundEvents.sort(function (a, b) { return a.offset - b.offset });
+    }
 
-    player.setPlaybackPosition = function(measureIndex, xCoordinate, measureWidth) {
+    player.setPlaybackPosition = function setPlaybackPosition(measureIndex, xCoordinate, measureWidth) {
         if (typeof soundEvents === 'undefined') calculatePlayerEvents();
 
         if (GuitarTab.state.playback) {
@@ -175,7 +175,7 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         playbackPosition = measureBoundaries[measureIndex].offset + (measureBoundaries[measureIndex].duration * xCoordinate / measureWidth);
 
         // Move the cursor to position
-        moveCursor(measureBoundaries[measureIndex].cursor, (xCoordinate * 100 / measureWidth) + '%');
+        moveCursor(measureBoundaries[measureIndex].cursor, (xCoordinate * 100 / measureWidth) + '%', null);
 
         GuitarTab.emitter.emit('playbackPosition', { playbackPosition: playbackPosition });
 
@@ -188,23 +188,23 @@ define(['midi', 'EventEmitter'], function(midi, events) {
 
             timeAtStart = audioContext.currentTime;
         }
-    }
+    };
 
-    player.pause = function() {
+    player.pause = function pause() {
         if (GuitarTab.state.playback) {
             playbackPosition = audioContext.currentTime + playbackPosition - timeAtStart;
             // Get the measure that the user has paused in
-            for (var i = 0; (measureBoundaries[i].offset + measureBoundaries[i].duration) <= playbackPosition; i++);
+            for (var i = 0; (measureBoundaries[i].offset + measureBoundaries[i].duration) <= playbackPosition; i++) {}
             var measureEvent = measureBoundaries[i];
 
-            moveCursor(measureEvent.cursor, ((playbackPosition - measureEvent.offset) * 100 / measureEvent.duration) + '%');
+            moveCursor(measureEvent.cursor, ((playbackPosition - measureEvent.offset) * 100 / measureEvent.duration) + '%', null);
 
             GuitarTab.state.playback = false;
             GuitarTab.emitter.emit('state');
         }
     };
 
-    player.play = function() {
+    player.play = function play() {
         if (typeof measureBoundaries === "undefined") calculatePlayerEvents();
 
         if (!GuitarTab.state.playback) {
@@ -224,17 +224,17 @@ define(['midi', 'EventEmitter'], function(midi, events) {
         }
     };
 
-    GuitarTab.emitter.on('measure', function(e) {
+    GuitarTab.emitter.on('measure', function onMeasureEvent() {
         delete measureBoundaries;
         delete soundEvents;
     });
 
-    GuitarTab.emitter.on('note', function(e) {
+    GuitarTab.emitter.on('note', function onNoteEvent() {
         delete measureBoundaries;
         delete soundEvents;
     });
 
-    GuitarTab.emitter.on('loaded', function(e) {
+    GuitarTab.emitter.on('loaded', function onLoadedEvent() {
         calculatePlayerEvents();
     });
 

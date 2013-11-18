@@ -4,12 +4,12 @@
 
  */
 
-define(['EventEmitter'], function(events) {
+define(['EventEmitter'], function (events) {
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     var editor = {};
 
-    editor.setNote = function (measureIndex, row, column, value) {
+    editor.setNote = function setNote(measureIndex, row, column, value) {
         console.log('Index: '+measureIndex+', Row: '+row+', Col: '+column+', Val: '+value);
         if (typeof value === 'number' || value.match(/^\d+$/)) {
             GuitarTab.tab.parts[0].measures[measureIndex].noteColumns[column].notes[row] = parseInt(value);
@@ -26,7 +26,7 @@ define(['EventEmitter'], function(events) {
         });
     };
 
-    editor.setNoteLength = function(measureIndex, column, value) {
+    editor.setNoteLength = function setNoteLength(measureIndex, column, value) {
         if (typeof value === 'number' || value.match(/^\d+$/)) {
             GuitarTab.tab.parts[0].measures[measureIndex].noteColumns[column].duration = parseInt(value);
         }

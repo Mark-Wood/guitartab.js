@@ -7,7 +7,7 @@ requirejs.config({
     }
 });
 
-require(['Renderer', 'PlayerController', 'EditorController', 'EventEmitter'], function(renderer, playerController, editorController, events){
+require(['Renderer', 'PlayerController', 'EditorController', 'EventEmitter'], function (renderer, playerController, editorController, events){
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     if (typeof GuitarTab.tab !== 'undefined') {
@@ -31,7 +31,7 @@ require(['Renderer', 'PlayerController', 'EditorController', 'EventEmitter'], fu
         MIDI.loadPlugin({
             soundfontUrl: "./soundfont/",
             instrument: "acoustic_grand_piano",
-            callback: function() {
+            callback: function midiLoadCallback() {
                 var audioContextInteraction = false;
 
                 (function checkAudioContextReady() {

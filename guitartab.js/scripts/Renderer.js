@@ -4,14 +4,14 @@ https://github.com/Markozy/guitartab.js
 
 */
 
-define(['EventEmitter'], function(events) {
+define(['EventEmitter'], function (events) {
     if (typeof GuitarTab.emitter === 'undefined') GuitarTab.emitter = new events.EventEmitter();
 
     var drawingTarget;
 
     var renderer = {};
 
-    var calculateMeasureColumnWidths = function(measureIndex) {
+    function calculateMeasureColumnWidths(measureIndex) {
         var digitWidth = 0.6;
         var sixtyFourthNoteWidth = digitWidth / 4;
         var measureContainer = document.getElementById('tab-measure-' + measureIndex);
@@ -43,9 +43,9 @@ define(['EventEmitter'], function(events) {
                 }
             }
         }
-    };
+    }
 
-    var convertJsonMeasureToHtml = function(measure, numberOfStrings, index) {
+    function convertJsonMeasureToHtml(measure, numberOfStrings, index) {
         var measureContainer = document.createElement('div');
         measureContainer.id = 'tab-measure-' + index;
         measureContainer.className = 'tab-measure';
@@ -87,10 +87,9 @@ define(['EventEmitter'], function(events) {
         measureContainer.appendChild(measureTable);
 
         return measureContainer;
+    }
 
-    };
-
-    renderer.renderTab = function(tab, targetElement) {
+    renderer.renderTab = function renderTab(tab, targetElement) {
         drawingTarget = targetElement;
 
         for (var partIndex = 0; partIndex < tab.parts.length; partIndex++) {
@@ -104,7 +103,7 @@ define(['EventEmitter'], function(events) {
         }
     };
 
-    GuitarTab.emitter.on('measure', function(e) {
+    GuitarTab.emitter.on('measure', function onMeasureEvent(e) {
         if (e.event === 'updated') {
             calculateMeasureColumnWidths(e.index);
         } else if (e.event === 'created') {
@@ -134,7 +133,7 @@ define(['EventEmitter'], function(events) {
         }
     });
 
-    GuitarTab.emitter.on('note', function(e) {
+    GuitarTab.emitter.on('note', function onNoteEvent(e) {
         if (e.event === 'updated') {
             if (e.type === 'value') {
                 var noteValue = GuitarTab.tab.parts[0].measures[e.measureIndex].noteColumns[e.colIndex].notes[e.rowIndex];
